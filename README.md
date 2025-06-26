@@ -1,26 +1,19 @@
----
-# 🚀 main.py
-
-(imports and main logic as above)
-
----
-# 📄 README.md
-
+# FineTuning_Automation
 ```markdown
-# 🧬 Protein Language Model Fine-Tuning Pipeline
+🧬 Protein Language Model Fine-Tuning Pipeline
 
 This project provides a full pipeline to fine-tune protein language models like **ProtGPT2**, **ProGen**, and **RITA** using your own FASTA data. It supports preprocessing, hyperparameter search with Optuna, LoRA fine-tuning, evaluation, and generation.
 
 ---
 
-## 📦 Models Supported
+📦 Models Supported
 - `protgpt2`
 - `progen2-small`, `progen2-medium`, `progen2-large`, `progen2-xlarge`
 - `RITA_s`, `RITA_m`, `RITA_l`, `RITA_xl`
 
 ---
 
-## 🧪 Requirements
+🧪 Requirements
 ```bash
 pip install -r requirements.txt
 ```
@@ -89,3 +82,5 @@ project/
 └── results/
     └── generated.txt
 ```
+
+---
