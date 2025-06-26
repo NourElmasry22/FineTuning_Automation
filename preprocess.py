@@ -29,7 +29,7 @@ def preprocess_progen(sequences):
 def preprocess_rita(sequences):
     return sequences  
 
-PREPROCESSORS = {
+preprocessors = {
     "protgpt2": preprocess_protgpt2,
     "progen": preprocess_progen,
     "rita": preprocess_rita,
