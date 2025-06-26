@@ -8,16 +8,9 @@ def model_init_func(model_init):
     return init
 
 def compute_metrics(eval_pred):
-    return {}  
+    return {}
 
-def optuna_search(
-    model_init,
-    tokenizer,
-    dataset,
-    output_dir="./optuna_results",
-    n_trials=10,
-    direction="maximize",
-):
+def optuna_search(model_init, tokenizer, dataset, output_dir="./optuna_results", n_trials=10, direction="maximize"):
     def optuna_hp_space(trial):
         return {
             "learning_rate": trial.suggest_float("learning_rate", 1e-5, 5e-4, log=True),

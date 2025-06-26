@@ -24,12 +24,12 @@ def preprocess_protgpt2(sequences):
     return ["<|endoftext|>\n" + split_sequence(seq) for seq in sequences]
 
 def preprocess_progen(sequences):
-    return sequences
+    return [" ".join(list(seq)) for seq in sequences]
 
 def preprocess_rita(sequences):
-    return sequences  
+    return sequences  # no change
 
-preprocessors = {
+PREPROCESSORS = {
     "protgpt2": preprocess_protgpt2,
     "progen": preprocess_progen,
     "rita": preprocess_rita,
