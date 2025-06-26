@@ -1,10 +1,9 @@
-accelerate>=0.28.0
-transformers>=4.42.0
-datasets>=2.19.0
-peft>=0.10.0
+transformers>=4.38.0
+datasets>=2.18.0
+peft>=0.9.0
 optuna>=3.5.0
+torch>=2.1.0
+accelerate>=0.27.0
+scikit-learn>=1.4.0
+numpy
 tqdm
-safetensors
-bitsandbytes
-boto3
-python-dotenv
