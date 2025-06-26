@@ -72,4 +72,4 @@ if __name__ == "__main__":
         save_path=args.save_path,
     )
 
-    print("\n🧬 Generated Sequence:\n", result)
+    print("\n Generated Sequence:\n", result)
