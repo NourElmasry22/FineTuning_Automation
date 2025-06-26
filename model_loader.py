@@ -1,4 +1,5 @@
 from transformers import AutoTokenizer, AutoModelForCausalLM
+import torch
 
 MODEL_MAP = {
     "protgpt2": "nferruz/ProtGPT2",
@@ -13,7 +14,6 @@ MODEL_MAP = {
     "RITA_l": "lightonai/RITA_l", 
     "RITA_xl": "lightonai/RITA_xl",
 
-    "prollama": "GreatCaptainNemo/ProLLaMA",  
 }
 
 def load_model_and_tokenizer(model_key: str):
@@ -24,6 +24,13 @@ def load_model_and_tokenizer(model_key: str):
     print(f"[INFO] Loading model: {model_key} from {model_name}")
 
     tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModelForCausalLM.from_pretrained(model_name)
+    tokenizer.pad_token = tokenizer.eos_token
+    tokenizer.pad_token_id = tokenizer.eos_token_id
+
+    model = AutoModelForCausalLM.from_pretrained(
+        model_name,
+        device_map="auto",
+        torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32
+    )
 
     return model, tokenizer
