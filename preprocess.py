@@ -1,4 +1,3 @@
-import argparse
 import random
 from datasets import load_dataset
 import os
@@ -35,6 +34,18 @@ PREPROCESSORS = {
     "rita": preprocess_rita,
 }
 
+MODEL_TO_PREPROCESSOR = {
+    "protgpt2": "protgpt2",
+    "progen2-small": "progen",
+    "progen2-medium": "progen",
+    "progen2-large": "progen",
+    "progen2-xlarge": "progen",
+    "RITA_s": "rita",
+    "RITA_m": "rita",
+    "RITA_l": "rita",
+    "RITA_xl": "rita",
+}
+
 def split_dataset(sequences):
     random.shuffle(sequences)
     n = len(sequences)
@@ -49,24 +60,3 @@ def save_splits(train, valid, test, out_dir):
     with open(f"{out_dir}/validation.txt", 'w') as f: f.write("\n".join(valid))
     with open(f"{out_dir}/test.txt", 'w') as f: f.write("\n".join(test))
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--fasta_file", required=True)
-    parser.add_argument("--model", required=True, choices=PREPROCESSORS.keys())
-    parser.add_argument("--output_dir", default="./splits")
-    args = parser.parse_args()
-
-    raw_sequences = read_fasta(args.fasta_file)
-    preprocessor = PREPROCESSORS[args.model]
-    processed_sequences = preprocessor(raw_sequences)
-    
-    train, valid, test = split_dataset(processed_sequences)
-    save_splits(train, valid, test, args.output_dir)
-
-    dataset = load_dataset("text", data_files={
-        "train": f"{args.output_dir}/train.txt",
-        "validation": f"{args.output_dir}/validation.txt",
-        "test": f"{args.output_dir}/test.txt"
-    })
-
-    print("[INFO] Dataset loaded successfully:", dataset)

@@ -1,4 +1,4 @@
-from transformers import Trainer, TrainingArguments
+from transformers import Trainer, TrainingArguments, DataCollatorForLanguageModeling
 import optuna
 import torch
 
@@ -7,10 +7,7 @@ def model_init_func(model_init):
         return model_init()
     return init
 
-def compute_metrics(eval_pred):
-    return {}
-
-def optuna_search(model_init, tokenizer, dataset, output_dir="./optuna_results", n_trials=10, direction="maximize"):
+def optuna_search(model_init, tokenizer, dataset, output_dir="./optuna_results", n_trials=10, direction="minimize"):
     def optuna_hp_space(trial):
         return {
             "learning_rate": trial.suggest_float("learning_rate", 1e-5, 5e-4, log=True),
@@ -19,24 +16,28 @@ def optuna_search(model_init, tokenizer, dataset, output_dir="./optuna_results",
             "weight_decay": trial.suggest_float("weight_decay", 0.0, 0.3),
         }
 
+    collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
+
     training_args = TrainingArguments(
         output_dir=output_dir,
-        evaluation_strategy="epoch",
-        save_strategy="no",
+        eval_strategy="epoch",
+        save_strategy="epoch",
+        load_best_model_at_end=True,
         logging_dir=f"{output_dir}/logs",
-        logging_steps=10,
-        load_best_model_at_end=False,
         fp16=torch.cuda.is_available(),
         report_to="none",
+        metric_for_best_model="eval_loss",
+        greater_is_better=False,
     )
 
     trainer = Trainer(
         model_init=model_init_func(model_init),
         args=training_args,
         tokenizer=tokenizer,
+        data_collator=collator,
         train_dataset=dataset["train"],
         eval_dataset=dataset["validation"],
-        compute_metrics=compute_metrics,
+        # compute_metrics=lambda eval_pred: {"perplexity": torch.exp(torch.tensor(eval_pred.loss))}
     )
 
     best_trial = trainer.hyperparameter_search(
