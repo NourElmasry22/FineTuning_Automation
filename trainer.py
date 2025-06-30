@@ -9,7 +9,7 @@ from transformers import EarlyStoppingCallback
 #labels, datacollector and early stopping needed 
 def get_target_modules(model_name):
     if "progen" in model_name:
-        return ["q_proj", "v_proj"]
+        return ["qkv_proj", "out_proj", "fc_in", "fc_out"]
     elif "rita" in model_name:
         return ["Wq", "Wv"]
     elif "protgpt2" in model_name:
@@ -48,13 +48,16 @@ def train_model(model, tokenizer, dataset, best_params, model_name, output_dir="
         per_device_train_batch_size=best_params["per_device_train_batch_size"],
         num_train_epochs=best_params["num_train_epochs"],
         weight_decay=best_params["weight_decay"],
-        fp16=torch.cuda.is_available(),
+        fp16=False,  # Disable FP16 to avoid gradient scaling issues
         save_total_limit=1,
         load_best_model_at_end=True,
         report_to="none",
         label_names=["labels"],
         metric_for_best_model="eval_loss",
-        greater_is_better=False
+        greater_is_better=False,
+        remove_unused_columns=False,
+        dataloader_pin_memory=False,
+        max_grad_norm=1.0,
 
     )
 

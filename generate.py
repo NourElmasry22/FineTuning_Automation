@@ -35,7 +35,7 @@ def generate_with_rita(model, tokenizer, prompt, max_new_tokens=200):
         output_ids = model.generate(input_ids, do_sample=True, temperature=0.8, top_k=40, top_p=0.9, max_new_tokens=max_new_tokens)
     return tokenizer.decode(output_ids[0], skip_special_tokens=True)
 
-def save_result(output_text, save_path="./generated.txt"):
+def save_result(output_text, save_path="./generated.fasta"):
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     with open(save_path, "w") as f:
         f.write(output_text)
@@ -61,7 +61,7 @@ if __name__ == "__main__":
     parser.add_argument("--model_dir", required=True)
     parser.add_argument("--prompt", required=True)
     parser.add_argument("--max_new_tokens", type=int, default=200)
-    parser.add_argument("--save_path", default="./generated.txt")
+    parser.add_argument("--save_path", default="./generated.fasta")
     args = parser.parse_args()
 
     result = generate_sequence(

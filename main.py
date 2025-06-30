@@ -15,11 +15,11 @@ def main():
     parser.add_argument("--model", required=True)
     parser.add_argument("--fasta_file", required=True)
     parser.add_argument("--output_dir", default="./outputs")
-    parser.add_argument("--n_trials", type=int, default=5)
+    parser.add_argument("--n_trials", type=int, default=10)
     parser.add_argument("--use_lora", action="store_true")
     parser.add_argument("--generate", action="store_true")
     parser.add_argument("--prompt", default="")
-    parser.add_argument("--num_return_sequences", type=int, default=1)
+    parser.add_argument("--num_return_sequences", type=int, default=10)
     args = parser.parse_args()
 
     os.makedirs(args.output_dir, exist_ok=True)
@@ -57,6 +57,7 @@ def main():
         input_ids_list = tokenized['input_ids']
         labels_list = [ids[:] for ids in input_ids_list]
         tokenized["labels"] = labels_list
+        return tokenized
 
     dataset = dataset.map(tokenize_function, batched=True, remove_columns=["text"])
 
