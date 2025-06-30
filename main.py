@@ -2,11 +2,7 @@ import argparse
 import os
 from model_loader import load_model_and_tokenizer
 from preprocess import (
-    read_fasta,
-    PREPROCESSORS,
-    MODEL_TO_PREPROCESSOR,
-    split_dataset,
-    save_splits
+    read_fasta, PREPROCESSORS, MODEL_TO_PREPROCESSOR, split_dataset, save_splits
 )
 from datasets import load_dataset
 from optuna_search import optuna_search
@@ -14,37 +10,27 @@ from trainer import train_model
 from evaluate import evaluate_model
 from generate import generate_sequence
 
-
 def main():
     parser = argparse.ArgumentParser(description="Protein LLM Fine-Tuning Pipeline")
-
-    parser.add_argument("--model", required=True, help="Model key (e.g., protgpt2, progen2-small, RITA_s)")
-    parser.add_argument("--fasta_file", required=True, help="Path to input FASTA file")
-    parser.add_argument("--output_dir", default="./outputs", help="Output directory")
-    parser.add_argument("--n_trials", type=int, default=5, help="Number of Optuna trials")
-    parser.add_argument("--use_lora", action="store_true", help="Use LoRA PEFT")
-    parser.add_argument("--generate", action="store_true", help="Generate sequences after training")
-    parser.add_argument("--prompt", default="", help="Prompt for generation")
-    parser.add_argument("--num_return_sequences", type=int, default=1, help="Number of sequences to generate")
-
+    parser.add_argument("--model", required=True)
+    parser.add_argument("--fasta_file", required=True)
+    parser.add_argument("--output_dir", default="./outputs")
+    parser.add_argument("--n_trials", type=int, default=5)
+    parser.add_argument("--use_lora", action="store_true")
+    parser.add_argument("--generate", action="store_true")
+    parser.add_argument("--prompt", default="")
+    parser.add_argument("--num_return_sequences", type=int, default=1)
     args = parser.parse_args()
 
     os.makedirs(args.output_dir, exist_ok=True)
 
-   
     print("Loading model and tokenizer...")
     model, tokenizer = load_model_and_tokenizer(args.model)
 
-   
     print("Reading and preprocessing FASTA sequences...")
     raw_sequences = read_fasta(args.fasta_file)
-
-    if args.model not in MODEL_TO_PREPROCESSOR:
-        raise ValueError(f"Unknown model: {args.model}")
-
     preproc_key = MODEL_TO_PREPROCESSOR[args.model]
     processed_sequences = PREPROCESSORS[preproc_key](raw_sequences)
-
 
     print("Splitting dataset...")
     train, val, test = split_dataset(processed_sequences)
@@ -60,6 +46,19 @@ def main():
         }
     )
 
+    print("Tokenizing dataset...")
+    def tokenize_function(examples):
+        tokenized = tokenizer(
+            examples["text"],
+            truncation=True,
+            padding="max_length",
+            max_length=512,
+        )
+        input_ids_list = tokenized['input_ids']
+        labels_list = [ids[:] for ids in input_ids_list]
+        tokenized["labels"] = labels_list
+
+    dataset = dataset.map(tokenize_function, batched=True, remove_columns=["text"])
 
     print("Running Optuna hyperparameter search...")
     best_trial = optuna_search(
@@ -70,10 +69,9 @@ def main():
         n_trials=args.n_trials
     )
 
-    print("Best hyperparameters found:")
-    print(best_trial)
+    print("Best hyperparameters:", best_trial)
 
-    print("Training final model with best hyperparameters...")
+    print("Training final model...")
     model, tokenizer = load_model_and_tokenizer(args.model)
     train_model(
         model=model,
@@ -85,16 +83,14 @@ def main():
         use_lora=args.use_lora
     )
 
- 
     print("Evaluating model...")
     evaluate_model(
         model_dir=f"{args.output_dir}/final_model",
         test_file=f"{args.output_dir}/test.txt"
     )
 
-
     if args.generate:
-        print(" Generating sequences...")
+        print("Generating sequences...")
         for i in range(args.num_return_sequences):
             output = generate_sequence(
                 model_name=args.model,
@@ -105,7 +101,6 @@ def main():
             print(f"[Generated #{i+1}]\n{output}\n")
 
     print("\nPipeline finished successfully.")
-
 
 if __name__ == "__main__":
     main()
